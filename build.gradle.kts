@@ -1,7 +1,6 @@
 plugins {
     java
-    id("com.gradleup.shadow") version "8.3.0"
-    id("io.freefair.lombok") version "8.13.1"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 group = "com.artillexstudios"
@@ -53,14 +52,13 @@ tasks.build {
 }
 
 tasks.shadowJar {
-    minimize()
     archiveClassifier.set("")
 
     mapOf(
         "com.artillexstudios.axapi" to "axapi",
         "org.bstats" to "bstats",
         "revxrsal.commands" to "lamp",
-    ).forEach { key, value ->
+    ).forEach { (key, value) ->
         relocate(key, "com.artillexstudios.axgraves.libs.$value")
     }
 
@@ -74,7 +72,7 @@ tasks.processResources {
     val props = mapOf("version" to version)
     inputs.properties(props)
     filteringCharset = "UTF-8"
-    filesMatching("*plugin.yml") {
+    filesMatching("plugin.yml") {
         expand(props)
     }
 }

@@ -22,6 +22,26 @@ instant-pickup-only-own: false
 # you should disable this if you want keep-inventory to work
 override-keep-inventory: false
 
+# should _some_ items be kept when the player dies
+soft-keep-inventory:
+  enabled: false
+
+  # how much of the inventory will be kept on death
+  # the rest will be placed on the grave
+  percentage: 0.5
+
+  # should some items have an extra chance of being kept
+  pity:
+
+    # change to trigger pity
+    percentage: 0.8
+
+    # inventory slots to _possibly_ keep
+    slots:
+      armor-contents: true
+      main-hand: true
+      off-hand: true
+
 # how high should grave holograms spawn?
 # only applies to new graves
 hologram-height: 0.5

@@ -13,10 +13,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
@@ -48,7 +49,43 @@ public class DeathListener implements Listener {
 
         List<ItemStack> drops = null;
         if (!event.getKeepInventory()) {
-            drops = event.getDrops();
+            if (CONFIG.getBoolean("soft-keep-inventory.enabled", false)) {
+                int limit = (int) (event.getDrops().size() * CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f));
+                List<ItemStack> items = event.getDrops();
+                Iterator<ItemStack> iterator = items.iterator();
+
+                drops = new ArrayList<>();
+                PlayerInventory inventory = player.getInventory();
+                List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
+                Random random = ThreadLocalRandom.current();
+                for (int i = 0; iterator.hasNext(); i++) {
+                    ItemStack item = iterator.next();
+
+                    if (i < limit) {
+                        event.getItemsToKeep().add(item);
+                        continue;
+                    }
+
+                    if (random.nextFloat() < CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f)) {
+                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true) && armorContents.contains(item)) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
+                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true) && inventory.getItemInMainHand().equals(item)) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
+                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true) && inventory.getItemInOffHand().equals(item)) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
+                    }
+
+                    drops.add(item);
+                }
+            } else {
+                drops = event.getDrops();
+            }
         } else if (CONFIG.getBoolean("override-keep-inventory", true)) {
             drops = Arrays.asList(player.getInventory().getContents());
             if (storeXp) {
