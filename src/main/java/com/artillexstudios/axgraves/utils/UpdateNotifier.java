@@ -67,8 +67,7 @@ public class UpdateNotifier implements Listener {
 
     @Nullable
     private String readVersion() {
-        try {
-            final HttpClient client = HttpClient.newHttpClient();
+        try (final HttpClient client = HttpClient.newHttpClient()) {
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI("https://api.polymart.org/v1/getResourceInfoSimple/?resource_id=" + id + "&key=version"))
                     .timeout(Duration.of(10, SECONDS))
