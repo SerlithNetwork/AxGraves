@@ -147,6 +147,8 @@ holograms:
   billboard: vertical
   # should blocks/entities be visible behind the displays?
   see-through: false
+  # should use text shadow
+  shadow: true
 
 # should be plugin notify you if there is a new update?
 update-notifier:

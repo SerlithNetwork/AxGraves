@@ -216,6 +216,7 @@ public class Grave {
             meta.seeThrough(section.getBoolean("see-through"));
             meta.alignment(TextDisplayMeta.Alignment.valueOf(section.getString("alignment").toUpperCase()));
             meta.backgroundColor(Integer.parseInt(section.getString("background-color"), 16));
+            meta.shadow(Boolean.parseBoolean(section.getString("shadow")));
             meta.lineWidth(1000);
             meta.billboardConstrain(DisplayMeta.BillboardConstrain.valueOf(section.getString("billboard").toUpperCase()));
         });
