@@ -52,6 +52,7 @@ public class DeathListener implements Listener {
             if (CONFIG.getBoolean("soft-keep-inventory.enabled", false)) {
                 int limit = (int) (event.getDrops().size() * CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f));
                 List<ItemStack> items = event.getDrops();
+                Collections.shuffle(items);
                 Iterator<ItemStack> iterator = items.iterator();
 
                 drops = new ArrayList<>();
