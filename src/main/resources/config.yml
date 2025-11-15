@@ -42,6 +42,18 @@ soft-keep-inventory:
       main-hand: true
       off-hand: true
 
+# Send a title on respawn
+respawn-title:
+  enabled: true
+  message: "<red>You died! [<x>, <y>]"
+  # delay in ticks
+  delay: 40
+  # durations in milliseconds
+  duration:
+    fade-in: 500
+    stay: 3000
+    fade-out: 500
+
 # how high should grave holograms spawn?
 # only applies to new graves
 hologram-height: 0.5
