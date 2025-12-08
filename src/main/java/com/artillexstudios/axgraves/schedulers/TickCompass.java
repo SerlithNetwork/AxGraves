@@ -39,9 +39,14 @@ public class TickCompass {
                     continue;
                 }
 
+                Location playerLocation = player.getLocation();
+                if (playerLocation.getWorld() != location.getWorld()) {
+                    continue;
+                }
+
                 ActionBar.create(
                         MiniMessage.miniMessage().deserialize(MESSAGES.getString("respawn-compass.message"),
-                                Placeholder.unparsed("distance", String.format("%.0f", location.distance(player.getLocation()))))
+                                Placeholder.unparsed("distance", String.format("%.0f", location.distance(playerLocation))))
                 ).send(player);
             }
         }, 500, 500, TimeUnit.MILLISECONDS);
