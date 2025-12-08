@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,7 @@ public class TickCompass {
                 }
 
                 Location playerLocation = player.getLocation();
-                if (playerLocation.getWorld() != location.getWorld()) {
+                if (!Objects.equals(playerLocation.getWorld(), location.getWorld())) {
                     continue;
                 }
 
