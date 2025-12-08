@@ -5,9 +5,15 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
 public class LocationUtils {
+
+    public static final ConcurrentMap<UUID, Location> DEATH_LOCATIONS = new ConcurrentHashMap<>();
 
     @NotNull
     public static Location getCenterOf(@NotNull Location location, boolean keepPitchYaw) {

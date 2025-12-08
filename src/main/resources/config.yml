@@ -54,6 +54,11 @@ respawn-title:
     stay: 3000
     fade-out: 500
 
+# Respawn compass
+respawn-compass:
+  enabled: true
+  display-name: "<red>Death Location"
+
 # how high should grave holograms spawn?
 # only applies to new graves
 hologram-height: 0.5

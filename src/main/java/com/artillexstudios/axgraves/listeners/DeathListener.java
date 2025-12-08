@@ -6,13 +6,18 @@ import com.artillexstudios.axgraves.api.events.GraveSpawnEvent;
 import com.artillexstudios.axgraves.grave.Grave;
 import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.utils.ExperienceUtils;
+import com.artillexstudios.axgraves.utils.KeyUtils;
+import com.artillexstudios.axgraves.utils.LocationUtils;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,19 +26,17 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.CompassMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
 public class DeathListener implements Listener {
-
-    private final ConcurrentMap<UUID, Location> deathLocations = new ConcurrentHashMap<>();
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(@NotNull PlayerDeathEvent event) {
@@ -58,7 +61,7 @@ public class DeathListener implements Listener {
         final GravePreSpawnEvent gravePreSpawnEvent = new GravePreSpawnEvent(player, location);
         Bukkit.getPluginManager().callEvent(gravePreSpawnEvent);
         if (gravePreSpawnEvent.isCancelled()) return;
-        this.deathLocations.put(player.getUniqueId(), location);
+        LocationUtils.DEATH_LOCATIONS.put(player.getUniqueId(), location);
 
         List<ItemStack> drops = null;
         if (!event.getKeepInventory()) {
@@ -123,42 +126,57 @@ public class DeathListener implements Listener {
 
     @EventHandler
     public void onRespawn(@NotNull PlayerPostRespawnEvent event) {
-        if (!CONFIG.getBoolean("respawn-title.enabled")) {
-            return;
+        final Player player = event.getPlayer();
+
+        if (CONFIG.getBoolean("respawn-title.enabled", false)) {
+            final String title = CONFIG.getString("respawn-title.message", "");
+            final long fadeIn = CONFIG.getLong("respawn-title.duration.fade-in", 0L);
+            final long stay = CONFIG.getLong("respawn-title.duration.fade-in", 200L);
+            final long fadeOut = CONFIG.getLong("respawn-title.duration.fade-in", 0L);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(AxGraves.getInstance(), () -> {
+                Location location = LocationUtils.DEATH_LOCATIONS.get(player.getUniqueId());
+                if (location == null) {
+                    return;
+                }
+
+                player.showTitle(
+                        Title.title(
+                                MiniMessage.miniMessage().deserialize(title,
+                                        Placeholder.unparsed("x", String.format("%d", location.getBlockX())),
+                                        Placeholder.unparsed("y", String.format("%d", location.getBlockY())),
+                                        Placeholder.unparsed("z", String.format("%d", location.getBlockZ()))
+                                ),
+                                Component.empty(),
+                                Title.Times.times(
+                                        Duration.ofMillis(fadeIn),
+                                        Duration.ofMillis(stay),
+                                        Duration.ofMillis(fadeOut)
+                                )
+                        )
+                );
+            }, CONFIG.getLong("respawn-title.delay", 40L));
         }
 
-        final Player player = event.getPlayer();
-        final String title = CONFIG.getString("respawn-title.message", "");
-        final long fadeIn = CONFIG.getLong("respawn-title.duration.fade-in", 0L);
-        final long stay = CONFIG.getLong("respawn-title.duration.fade-in", 200L);
-        final long fadeOut = CONFIG.getLong("respawn-title.duration.fade-in", 0L);
-        Bukkit.getScheduler().runTaskLaterAsynchronously(AxGraves.getInstance(), () -> {
-            Location location = this.deathLocations.get(player.getUniqueId());
-            if (location == null) {
-                return;
+        if (CONFIG.getBoolean("respawn-compass.enabled", false)) {
+            Location location = LocationUtils.DEATH_LOCATIONS.get(player.getUniqueId());
+            if (location != null) {
+                ItemStack compass = ItemStack.of(Material.COMPASS, 1);
+                CompassMeta meta = (CompassMeta) compass.getItemMeta();
+                meta.setLodestone(location.clone());
+                meta.setLodestoneTracked(false);
+                meta.displayName(MiniMessage.miniMessage().deserialize(CONFIG.getString("respawn-compass.display-name")).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                meta.addEnchant(Enchantment.UNBREAKING, 1, false);
+                compass.setItemMeta(meta);
+                compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
+                event.getPlayer().getInventory().addItem(compass);
             }
+        }
 
-            player.showTitle(
-                    Title.title(
-                            MiniMessage.miniMessage().deserialize(title,
-                                    Placeholder.unparsed("x", String.format("%d", location.getBlockX())),
-                                    Placeholder.unparsed("y", String.format("%d", location.getBlockY())),
-                                    Placeholder.unparsed("z", String.format("%d", location.getBlockZ()))
-                            ),
-                            Component.empty(),
-                            Title.Times.times(
-                                    Duration.ofMillis(fadeIn),
-                                    Duration.ofMillis(stay),
-                                    Duration.ofMillis(fadeOut)
-                            )
-                    )
-            );
-        }, CONFIG.getLong("respawn-title.delay", 40L));
     }
 
     @EventHandler
     public void onQuit(@NotNull PlayerQuitEvent event) {
-        this.deathLocations.remove(event.getPlayer().getUniqueId());
+        LocationUtils.DEATH_LOCATIONS.remove(event.getPlayer().getUniqueId());
     }
 
 }

@@ -17,6 +17,7 @@ import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.listeners.DeathListener;
 import com.artillexstudios.axgraves.listeners.PlayerInteractListener;
 import com.artillexstudios.axgraves.schedulers.SaveGraves;
+import com.artillexstudios.axgraves.schedulers.TickCompass;
 import com.artillexstudios.axgraves.schedulers.TickGraves;
 import com.artillexstudios.axgraves.utils.UpdateNotifier;
 import org.bstats.bukkit.Metrics;
@@ -62,6 +63,7 @@ public final class AxGraves extends AxPlugin {
 
         TickGraves.start();
         SaveGraves.start();
+        TickCompass.start();
 
         metrics = new AxMetrics(this, 20);
         metrics.start();
@@ -74,6 +76,7 @@ public final class AxGraves extends AxPlugin {
 
         TickGraves.stop();
         SaveGraves.stop();
+        TickCompass.stop();
 
         for (Grave grave : SpawnedGraves.getGraves()) {
             if (!CONFIG.getBoolean("save-graves.enabled", true)) grave.remove();
