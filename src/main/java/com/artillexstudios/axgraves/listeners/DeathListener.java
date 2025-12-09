@@ -13,10 +13,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.CompassMeta;
@@ -160,15 +163,31 @@ public class DeathListener implements Listener {
         if (CONFIG.getBoolean("respawn-compass.enabled", false)) {
             Location location = LocationUtils.DEATH_LOCATIONS.get(player.getUniqueId());
             if (location != null) {
-                ItemStack compass = ItemStack.of(Material.COMPASS, 1);
-                CompassMeta meta = (CompassMeta) compass.getItemMeta();
-                meta.setLodestone(location.clone());
-                meta.setLodestoneTracked(false);
-                meta.displayName(MiniMessage.miniMessage().deserialize(CONFIG.getString("respawn-compass.display-name")).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                meta.addEnchant(Enchantment.UNBREAKING, 1, false);
-                compass.setItemMeta(meta);
-                compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
-                event.getPlayer().getInventory().addItem(compass);
+                String rawDisplayName = CONFIG.getString("respawn-compass.display-name");
+                List<String> rawLore = CONFIG.getStringList("respawn-compass.lore");
+                Bukkit.getScheduler().runTaskAsynchronously(AxGraves.getInstance(), () -> {
+                    World world = location.getWorld();
+                    String worldName = world != null ? world.getName() : "";
+                    ItemStack compass = ItemStack.of(Material.COMPASS, 1);
+                    CompassMeta meta = (CompassMeta) compass.getItemMeta();
+                    meta.setLodestone(location.clone());
+                    meta.setLodestoneTracked(false);
+                    meta.displayName(MiniMessage.miniMessage().deserialize(rawDisplayName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+                    meta.lore(rawLore.stream().map(s -> MiniMessage.miniMessage().deserialize(s,
+                            Placeholder.unparsed("player", event.getPlayer().getName()),
+                            Placeholder.component("face", Component.object(ObjectContents.playerHead(event.getPlayer().getName()))),
+                            Placeholder.unparsed("world", worldName),
+                            Placeholder.unparsed("x", String.format("%.0f", location.x())),
+                            Placeholder.unparsed("y", String.format("%.0f", location.y())),
+                            Placeholder.unparsed("z", String.format("%.0f", location.z()))
+                            ).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList()
+                    );
+                    meta.addEnchant(Enchantment.UNBREAKING, 1, false);
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                    compass.setItemMeta(meta);
+                    compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
+                    Bukkit.getScheduler().runTask(AxGraves.getInstance(), () -> event.getPlayer().getInventory().addItem(compass));
+                });
             }
         }
 

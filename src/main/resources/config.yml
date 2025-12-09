@@ -58,6 +58,11 @@ respawn-title:
 respawn-compass:
   enabled: true
   display-name: "<red>Death Location"
+  lore:
+    - ""
+    - "<gray>Owner:</gray> <white><face> <player></white>"
+    - "<gray>Location:</gray> <red>[<white><x></white>, <white><y></white>, <white><z></white>]</red>"
+    - ""
 
 # how high should grave holograms spawn?
 # only applies to new graves
