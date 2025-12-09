@@ -46,7 +46,7 @@ public class TickCompass {
                 }
 
                 ActionBar.create(
-                        MiniMessage.miniMessage().deserialize(MESSAGES.getString("respawn-compass.message"),
+                        MiniMessage.miniMessage().deserialize(LANG.getString("respawn-compass.message"),
                                 Placeholder.unparsed("distance", String.format("%.0f", location.distance(playerLocation))))
                 ).send(player);
             }
