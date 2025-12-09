@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.artillexstudios"
-version = "1.23.1"
+version = "1.24.0"
 
 repositories {
     mavenCentral()
