@@ -15,17 +15,16 @@ import static com.artillexstudios.axgraves.AxGraves.MESSAGEUTILS;
 public enum Teleport {
     INSTANCE;
 
-    public void execute(Player sender, World world, Double x, Double y, Double z) {
-        if (world == null || x == null || y == null || z == null) {
-            Grave grave = SpawnedGraves.getGraves().stream().filter(gr -> gr.getPlayer().getUniqueId().equals(sender.getUniqueId())).findAny().orElse(null);
-            if (grave == null) {
-                MESSAGEUTILS.sendLang(sender, "grave-list.no-graves");
-                return;
-            }
-            PaperUtils.teleportAsync(sender, grave.getLocation().clone().add(0, 0.5, 0));
+    public void execute(Player sender) {
+        Grave grave = SpawnedGraves.getGraves().stream().filter(gr -> gr.getPlayer().getUniqueId().equals(sender.getUniqueId())).findAny().orElse(null);
+        if (grave == null) {
+            MESSAGEUTILS.sendLang(sender, "grave-list.no-graves");
             return;
         }
+        PaperUtils.teleportAsync(sender, grave.getLocation().clone().add(0, 0.5, 0));
+    }
 
+    public void execute(Player sender, World world, Double x, Double y, Double z) {
         final Location location = new Location(world, x, y, z);
         Optional<Grave> grave = SpawnedGraves.getGraves().stream()
                 .filter(gr -> gr.getPlayer().getUniqueId().equals(sender.getUniqueId()))
