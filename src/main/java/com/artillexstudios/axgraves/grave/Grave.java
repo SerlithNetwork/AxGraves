@@ -22,12 +22,7 @@ import com.artillexstudios.axgraves.utils.ExperienceUtils;
 import com.artillexstudios.axgraves.utils.InventoryUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
 import com.artillexstudios.axgraves.utils.Utils;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
@@ -153,25 +148,25 @@ public class Grave {
                 if (it == null) continue;
 
                 if (CONFIG.getBoolean("auto-equip-armor", true)) {
-                    if ((EnchantmentTarget.ARMOR_HEAD.includes(it) || it.getType().equals(Material.TURTLE_HELMET)) && opener.getInventory().getHelmet() == null) {
+                    if ((Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR.isTagged(it.getType()) || it.getType().equals(Material.TURTLE_HELMET)) && opener.getInventory().getHelmet() == null) {
                         opener.getInventory().setHelmet(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if ((EnchantmentTarget.ARMOR_TORSO.includes(it) || it.getType().equals(Material.ELYTRA)) && opener.getInventory().getChestplate() == null) {
+                    if ((Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR.isTagged(it.getType()) || it.getType().equals(Material.ELYTRA)) && opener.getInventory().getChestplate() == null) {
                         opener.getInventory().setChestplate(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (EnchantmentTarget.ARMOR_LEGS.includes(it) && opener.getInventory().getLeggings() == null) {
+                    if (Tag.ITEMS_ENCHANTABLE_LEG_ARMOR.isTagged(it.getType()) && opener.getInventory().getLeggings() == null) {
                         opener.getInventory().setLeggings(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (EnchantmentTarget.ARMOR_FEET.includes(it) && opener.getInventory().getBoots() == null) {
+                    if (Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR.isTagged(it.getType()) && opener.getInventory().getBoots() == null) {
                         opener.getInventory().setBoots(it);
                         it.setAmount(0);
                         continue;
@@ -260,8 +255,12 @@ public class Grave {
             for (ItemStack it : gui.getContents()) {
                 if (it == null) continue;
                 final Item item = location.getWorld().dropItem(location.clone(), it);
-                if (CONFIG.getBoolean("dropped-item-velocity", true)) continue;
-                item.setVelocity(ZERO_VECTOR);
+                if (!CONFIG.getBoolean("dropped-item-velocity", true)) {
+                    item.setVelocity(ZERO_VECTOR);
+                }
+                if (CONFIG.getBoolean("dropped-item-glowing", true)) {
+                    item.setGlowing(true);
+                }
             }
         }
 
