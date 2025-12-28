@@ -167,7 +167,7 @@ public class DeathListener implements Listener {
                 List<String> rawLore = CONFIG.getStringList("respawn-compass.lore");
                 Bukkit.getScheduler().runTaskAsynchronously(AxGraves.getInstance(), () -> {
                     World world = location.getWorld();
-                    String worldName = world != null ? world.getName() : "";
+                    String worldName = LocationUtils.getWorldName(world);
                     ItemStack compass = ItemStack.of(Material.COMPASS, 1);
                     CompassMeta meta = (CompassMeta) compass.getItemMeta();
                     meta.setLodestone(location.clone());
