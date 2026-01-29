@@ -22,8 +22,12 @@ enable-instant-pickup: true
 # this makes it that only the owner of the grave will be able to instantly pick it up
 instant-pickup-only-own: false
 
-# you should disable this if you want keep-inventory to work
+# if you enable this, items will be taken away and stored in the grave on death, even if third party plugin tries to keep them
+# enabling this will also make the keep-inventory gamerule ineffective
 override-keep-inventory: false
+
+# if you enable this, xp levels will be taken away and stored in the grave on death, even if third party plugin tries to keep them
+override-keep-level: false
 
 # should _some_ items be kept when the player dies
 soft-keep-inventory:
@@ -77,11 +81,6 @@ hologram-height: 0.5
 # only applies to new graves
 head-height: -1.2
 
-# worlds where graves won't spawn
-# this is case-sensitive
-disabled-worlds:
-  - "blacklisted_world"
-
 # true: the head can face in all the 360 degrees
 # false: the head can face in only 4 directions (north, east, south, west)
 rotate-head-360: true
@@ -98,6 +97,10 @@ interact-only-own: false
 # should the player lose any xp on death?
 # this is a percentage, so 0.5 would be 50% xp
 xp-keep-percentage: 1.0
+
+# should the plugin store items in graves?
+# if disabled, the items will be dropped on the ground
+store-items: true
 
 # should the plugin store XP in graves?
 # if disabled, XP will be dropped on the ground
@@ -119,6 +122,16 @@ auto-equip-armor: true
 # set to -1 to disable
 # you can override this by giving players the axgraves.limit.<amount> permissions
 grave-limit: -1
+
+# should the grave disappear when all items get taken out of it?
+despawn-when-empty: true
+
+save-graves:
+  # should graves be saved if the server stops?
+  enabled: true
+  # how often should the graves be saved?
+  # set to -1 to make it only save on shutdown (it might not save if there is a crash)
+  auto-save-seconds: 30
 
 # by default every grave will use the player's skull
 # with this setting you can override it
@@ -155,21 +168,16 @@ world-name:
   world_nether: "The Nether"
   world_the_end: "The End"
 
+# worlds where graves won't spawn
+# this is case-sensitive
+disabled-worlds:
+  - "blacklisted_world"
+
 # if players die from any of the following, no graves will be spawned
 # list of valid values: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 # case sensitive
 blacklisted-death-causes:
   - "EXAMPLE_DEATH_CAUSE"
-
-# should the grave disappear when all items get taken out of it?
-despawn-when-empty: true
-
-save-graves:
-  # should graves be saved if the server stops?
-  enabled: true
-  # how often should the graves be saved?
-  # set to -1 to make it only save on shutdown (it might not save if there is a crash)
-  auto-save-seconds: 30
 
 # items that will be removed on death and will not show up in graves
 blacklisted-items:
@@ -199,4 +207,4 @@ update-notifier:
   on-join: true
 
 # do not edit
-version: 17
+version: 18

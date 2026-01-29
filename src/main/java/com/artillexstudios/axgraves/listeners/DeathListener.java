@@ -40,23 +40,36 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
 public class DeathListener implements Listener {
+    private static List<String> disabledWorlds;
+    private static List<String> blacklistedDeathCauses;
+    private static boolean overrideKeepInventory;
+    private static boolean overrideKeepLevel;
+    private static boolean storeItems;
+    private static boolean storeXP;
+    private static float xpKeepPercentage;
+
+    public static void reload() {
+        disabledWorlds = CONFIG.getStringList("disabled-worlds");
+        blacklistedDeathCauses = CONFIG.getStringList("blacklisted-death-causes");
+        overrideKeepInventory = CONFIG.getBoolean("override-keep-inventory", true);
+        overrideKeepLevel = CONFIG.getBoolean("override-keep-level", true);
+        storeItems = CONFIG.getBoolean("store-items", true);
+        storeXP = CONFIG.getBoolean("store-xp", true);
+        xpKeepPercentage = CONFIG.getFloat("xp-keep-percentage", 1f);
+    }
+
+    public DeathListener() {
+        reload();
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDeath(@NotNull PlayerDeathEvent event) {
-        if (CONFIG.getStringList("disabled-worlds") != null && CONFIG.getStringList("disabled-worlds").contains(event.getEntity().getWorld().getName())) return;
-        if (!CONFIG.getBoolean("override-keep-inventory", true) && event.getKeepInventory()) return;
+    public void onDeath(PlayerDeathEvent event) {
+        if (disabledWorlds.contains(event.getEntity().getWorld().getName())) return;
 
         Player player = event.getEntity();
         if (!player.hasPermission("axgraves.allowgraves")) return;
 
-        if (player.getLastDamageCause() != null && CONFIG.getStringList("blacklisted-death-causes").contains(player.getLastDamageCause().getCause().name())) return;
-        if (player.getInventory().isEmpty() && player.getTotalExperience() == 0) return;
-
-        int xp = 0;
-        boolean storeXp = CONFIG.getBoolean("store-xp", true);
-        if (storeXp) {
-            xp = Math.round(ExperienceUtils.getExp(player) * CONFIG.getFloat("xp-keep-percentage", 1f));
-        }
+        if (player.getLastDamageCause() != null && blacklistedDeathCauses.contains(player.getLastDamageCause().getCause().name())) return;
 
         Location location = player.getLocation();
         location.add(0, -0.5, 0);
@@ -66,61 +79,79 @@ public class DeathListener implements Listener {
         if (gravePreSpawnEvent.isCancelled()) return;
         LocationUtils.DEATH_LOCATIONS.put(player.getUniqueId(), location);
 
-        List<ItemStack> drops = null;
-        if (!event.getKeepInventory()) {
-            if (CONFIG.getBoolean("soft-keep-inventory.enabled", false)) {
-                int limit = (int) (event.getDrops().size() * CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f));
-                List<ItemStack> items = event.getDrops();
-                Collections.shuffle(items);
-                Iterator<ItemStack> iterator = items.iterator();
+        List<ItemStack> drops = new ArrayList<>();
+        if (storeItems) {
+            boolean store = false;
 
-                drops = new ArrayList<>();
-                PlayerInventory inventory = player.getInventory();
-                List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
-                Random random = ThreadLocalRandom.current();
-                for (int i = 0; iterator.hasNext(); i++) {
-                    ItemStack item = iterator.next();
+            if (!event.getKeepInventory()) {
+                store = true;
+				if (CONFIG.getBoolean("soft-keep-inventory.enabled", false)) {
+					int limit = (int) (event.getDrops().size() * CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f));
+					List<ItemStack> items = event.getDrops();
+					Collections.shuffle(items);
+					Iterator<ItemStack> iterator = items.iterator();
 
-                    if (i < limit) {
-                        event.getItemsToKeep().add(item);
-                        continue;
-                    }
+					PlayerInventory inventory = player.getInventory();
+					List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
+					Random random = ThreadLocalRandom.current();
+					for (int i = 0; iterator.hasNext(); i++) {
+						ItemStack item = iterator.next();
 
-                    if (random.nextFloat() < CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f)) {
-                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true) && armorContents.contains(item)) {
-                            event.getItemsToKeep().add(item);
-                            continue;
-                        }
-                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true) && inventory.getItemInMainHand().equals(item)) {
-                            event.getItemsToKeep().add(item);
-                            continue;
-                        }
-                        if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true) && inventory.getItemInOffHand().equals(item)) {
-                            event.getItemsToKeep().add(item);
-                            continue;
-                        }
-                    }
+						if (i < limit) {
+							event.getItemsToKeep().add(item);
+							continue;
+						}
 
-                    drops.add(item);
-                }
-            } else {
-                drops = event.getDrops();
+						if (random.nextFloat() < CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f)) {
+							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true) && armorContents.contains(item)) {
+								event.getItemsToKeep().add(item);
+								continue;
+							}
+							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true) && inventory.getItemInMainHand().equals(item)) {
+								event.getItemsToKeep().add(item);
+								continue;
+							}
+							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true) && inventory.getItemInOffHand().equals(item)) {
+								event.getItemsToKeep().add(item);
+								continue;
+							}
+						}
+
+						drops.add(item);
+					}
+				} else {
+					drops = event.getDrops();
+				}
+            } else if (overrideKeepInventory) {
+                store = true;
+                drops = Arrays.asList(player.getInventory().getContents());
+                player.getInventory().clear();
             }
-        } else if (CONFIG.getBoolean("override-keep-inventory", true)) {
-            drops = Arrays.asList(player.getInventory().getContents());
-            if (storeXp) {
+
+            if (store) {
+                event.getDrops().clear();
+            }
+        }
+
+        int xp = 0;
+        if (storeXP) {
+            boolean store = false;
+            if (!event.getKeepLevel()) {
+                store = true;
+            } else if (overrideKeepLevel) {
+                store = true;
                 player.setLevel(0);
                 player.setTotalExperience(0);
             }
-            player.getInventory().clear();
+
+            if (store) {
+                xp = Math.round(ExperienceUtils.getExp(player) * xpKeepPercentage);
+                event.setDroppedExp(0);
+            }
         }
 
-        if (drops == null) return;
+        if (drops.isEmpty() && xp == 0) return;
         Grave grave = new Grave(location, player, drops, xp, System.currentTimeMillis());
-
-        if (storeXp) event.setDroppedExp(0);
-        event.getDrops().clear();
-
         SpawnedGraves.addGrave(grave);
 
         final GraveSpawnEvent graveSpawnEvent = new GraveSpawnEvent(player, grave);
