@@ -47,6 +47,12 @@ public class DeathListener implements Listener {
     private static boolean storeItems;
     private static boolean storeXP;
     private static float xpKeepPercentage;
+    private static boolean softKeepInventory;
+    private static float softInventoryPercentage;
+    private static float softPityPercentage;
+    private static boolean softPityArmor;
+    private static boolean softPityMainHand;
+    private static boolean softPityOffHand;
 
     public static void reload() {
         disabledWorlds = CONFIG.getStringList("disabled-worlds");
@@ -56,6 +62,12 @@ public class DeathListener implements Listener {
         storeItems = CONFIG.getBoolean("store-items", true);
         storeXP = CONFIG.getBoolean("store-xp", true);
         xpKeepPercentage = CONFIG.getFloat("xp-keep-percentage", 1f);
+        softKeepInventory = CONFIG.getBoolean("soft-keep-inventory.enabled", false);
+        softInventoryPercentage = CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f);
+        softPityPercentage = CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f);
+        softPityArmor = CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true);
+        softPityMainHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true);
+        softPityOffHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true);
     }
 
     public DeathListener() {
@@ -85,43 +97,43 @@ public class DeathListener implements Listener {
 
             if (!event.getKeepInventory()) {
                 store = true;
-				if (CONFIG.getBoolean("soft-keep-inventory.enabled", false)) {
-					int limit = (int) (event.getDrops().size() * CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f));
-					List<ItemStack> items = event.getDrops();
-					Collections.shuffle(items);
-					Iterator<ItemStack> iterator = items.iterator();
+                if (softKeepInventory) {
+                    int limit = (int) (event.getDrops().size() * softInventoryPercentage);
+                    List<ItemStack> items = event.getDrops();
+                    Collections.shuffle(items);
+                    Iterator<ItemStack> iterator = items.iterator();
 
-					PlayerInventory inventory = player.getInventory();
-					List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
-					Random random = ThreadLocalRandom.current();
-					for (int i = 0; iterator.hasNext(); i++) {
-						ItemStack item = iterator.next();
+                    PlayerInventory inventory = player.getInventory();
+                    List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
+                    Random random = ThreadLocalRandom.current();
+                    for (int i = 0; iterator.hasNext(); i++) {
+                        ItemStack item = iterator.next();
 
-						if (i < limit) {
-							event.getItemsToKeep().add(item);
-							continue;
-						}
+                        if (i < limit) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
 
-						if (random.nextFloat() < CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f)) {
-							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true) && armorContents.contains(item)) {
-								event.getItemsToKeep().add(item);
-								continue;
-							}
-							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true) && inventory.getItemInMainHand().equals(item)) {
-								event.getItemsToKeep().add(item);
-								continue;
-							}
-							if (CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true) && inventory.getItemInOffHand().equals(item)) {
-								event.getItemsToKeep().add(item);
-								continue;
-							}
-						}
+                        if (random.nextFloat() < softPityPercentage) {
+                            if (softPityArmor && armorContents.contains(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityMainHand && inventory.getItemInMainHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityOffHand && inventory.getItemInOffHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                        }
 
-						drops.add(item);
-					}
-				} else {
-					drops = event.getDrops();
-				}
+                        drops.add(item);
+                    }
+                } else {
+                    drops = event.getDrops();
+                }
             } else if (overrideKeepInventory) {
                 store = true;
                 drops = Arrays.asList(player.getInventory().getContents());
