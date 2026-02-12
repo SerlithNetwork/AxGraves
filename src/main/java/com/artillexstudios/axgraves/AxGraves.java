@@ -17,6 +17,7 @@ import com.artillexstudios.axgraves.grave.GravePlaceholders;
 import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.listeners.DeathListener;
 import com.artillexstudios.axgraves.listeners.PlayerInteractListener;
+import com.artillexstudios.axgraves.listeners.RespawnListener;
 import com.artillexstudios.axgraves.schedulers.SaveGraves;
 import com.artillexstudios.axgraves.schedulers.TickCompass;
 import com.artillexstudios.axgraves.schedulers.TickGraves;
@@ -61,6 +62,7 @@ public final class AxGraves extends AxPlugin {
         MESSAGEUTILS = new MessageUtils(LANG.getBackingDocument(), "prefix", CONFIG.getBackingDocument());
 
         new DeathListener();
+        new RespawnListener();
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
 
         // CommandManager.load();
