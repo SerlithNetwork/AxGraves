@@ -27,7 +27,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
@@ -35,6 +34,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,36 +154,38 @@ public class Grave {
             if (!CONFIG.getBoolean("enable-instant-pickup", true)) return;
             if (CONFIG.getBoolean("instant-pickup-only-own", false) && !opener.getUniqueId().equals(player.getUniqueId())) return;
 
+            PlayerInventory inventory = opener.getInventory();
             for (ItemStack it : gui.getContents()) {
                 if (it == null) continue;
 
                 if (CONFIG.getBoolean("auto-equip-armor", true)) {
-                    if ((EnchantmentTarget.ARMOR_HEAD.includes(it) || it.getType().equals(Material.TURTLE_HELMET)) && opener.getInventory().getHelmet() == null) {
-                        opener.getInventory().setHelmet(it);
+                    Material material = it.getType();
+                    if (isSlotEmpty(inventory.getHelmet()) && Utils.isHelmet(material)) {
+                        inventory.setHelmet(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if ((EnchantmentTarget.ARMOR_TORSO.includes(it) || it.getType().equals(Material.ELYTRA)) && opener.getInventory().getChestplate() == null) {
-                        opener.getInventory().setChestplate(it);
+                    if (isSlotEmpty(inventory.getChestplate()) && Utils.isChestplate(material)) {
+                        inventory.setChestplate(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (EnchantmentTarget.ARMOR_LEGS.includes(it) && opener.getInventory().getLeggings() == null) {
-                        opener.getInventory().setLeggings(it);
+                    if (isSlotEmpty(inventory.getLeggings()) && Utils.isLeggings(material)) {
+                        inventory.setLeggings(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (EnchantmentTarget.ARMOR_FEET.includes(it) && opener.getInventory().getBoots() == null) {
-                        opener.getInventory().setBoots(it);
+                    if (isSlotEmpty(inventory.getBoots()) && Utils.isBoots(material)) {
+                        inventory.setBoots(it);
                         it.setAmount(0);
                         continue;
                     }
                 }
 
-                final Collection<ItemStack> ar = opener.getInventory().addItem(it).values();
+                final Collection<ItemStack> ar = inventory.addItem(it).values();
                 if (ar.isEmpty()) {
                     it.setAmount(0);
                     continue;
@@ -201,6 +203,11 @@ public class Grave {
         if (graveOpenEvent.isCancelled()) return;
 
         opener.openInventory(gui);
+    }
+
+    private boolean isSlotEmpty(ItemStack item) {
+        if (item == null) return true;
+        return item.getType().isAir();
     }
 
     public void updateHologram() {

@@ -99,6 +99,7 @@ public final class AxGraves extends AxPlugin {
         FeatureFlags.USE_LEGACY_HEX_FORMATTER.set(true);
         FeatureFlags.PACKET_ENTITY_TRACKER_ENABLED.set(true);
         FeatureFlags.HOLOGRAM_UPDATE_TICKS.set(5L);
+        FeatureFlags.PACKET_ENTITY_TRACKER_THREADS.set(1);
         FeatureFlags.ENABLE_PACKET_LISTENERS.set(true);
         FeatureFlags.PLACEHOLDER_API_HOOK.set(true);
         FeatureFlags.PLACEHOLDER_API_IDENTIFIER.set("axgraves");

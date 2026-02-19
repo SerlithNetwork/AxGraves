@@ -27,4 +27,36 @@ public class Utils {
 
         return builder.get();
     }
+
+    public static boolean isHelmet(Material material) {
+        return switch (material.name()) {
+            case "LEATHER_HELMET", "CHAINMAIL_HELMET", "IRON_HELMET", "COPPER_HELMET", "GOLDEN_HELMET",
+                 "DIAMOND_HELMET", "NETHERITE_HELMET", "TURTLE_HELMET" -> true;
+            default -> false;
+        };
+    }
+
+    public static boolean isChestplate(Material material) {
+        return switch (material.name()) {
+            case "LEATHER_CHESTPLATE", "CHAINMAIL_CHESTPLATE", "IRON_CHESTPLATE", "COPPER_CHESTPLATE", "GOLDEN_CHESTPLATE",
+                 "DIAMOND_CHESTPLATE", "NETHERITE_CHESTPLATE", "ELYTRA" -> true;
+            default -> false;
+        };
+    }
+
+    public static boolean isLeggings(Material material) {
+        return switch (material.name()) {
+            case "LEATHER_LEGGINGS", "CHAINMAIL_LEGGINGS", "IRON_LEGGINGS", "COPPER_LEGGINGS", "GOLDEN_LEGGINGS",
+                 "DIAMOND_LEGGINGS", "NETHERITE_LEGGINGS" -> true;
+            default -> false;
+        };
+    }
+
+    public static boolean isBoots(Material material) {
+        return switch (material.name()) {
+            case "LEATHER_BOOTS", "CHAINMAIL_BOOTS", "IRON_BOOTS", "COPPER_BOOTS", "GOLDEN_BOOTS",
+                 "DIAMOND_BOOTS", "NETHERITE_BOOTS" -> true;
+            default -> false;
+        };
+    }
 }
