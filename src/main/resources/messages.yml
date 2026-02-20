@@ -11,7 +11,7 @@ help:
   - " <#FF55FF>➤ <white>/axgraves tp <#DDDDDD>| <#FFAAFF>Teleport to last grave"
   - " "
 
-gui-name: "&0%player%'s Grave"
+gui-name: "<black>%player%'s Grave</black>"
 
 # if you restart the server, sometimes the server can't find the owner's name, this will be used for it
 unknown-player: "Unknown"

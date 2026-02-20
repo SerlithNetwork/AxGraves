@@ -4,6 +4,7 @@ import com.artillexstudios.axapi.nms.wrapper.ServerPlayerWrapper;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
@@ -29,40 +30,25 @@ public class Utils {
         return builder.get();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isRespawnCompass(@NotNull ItemStack item) {
         return !item.isEmpty() && item.getType() == Material.COMPASS && item.getPersistentDataContainer().getOrDefault(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, false);
     }
 
     public static boolean isHelmet(Material material) {
-        return switch (material.name()) {
-            case "LEATHER_HELMET", "CHAINMAIL_HELMET", "IRON_HELMET", "COPPER_HELMET", "GOLDEN_HELMET",
-                 "DIAMOND_HELMET", "NETHERITE_HELMET", "TURTLE_HELMET" -> true;
-            default -> false;
-        };
+        return Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR.isTagged(material) || material.equals(Material.TURTLE_HELMET);
     }
 
     public static boolean isChestplate(Material material) {
-        return switch (material.name()) {
-            case "LEATHER_CHESTPLATE", "CHAINMAIL_CHESTPLATE", "IRON_CHESTPLATE", "COPPER_CHESTPLATE", "GOLDEN_CHESTPLATE",
-                 "DIAMOND_CHESTPLATE", "NETHERITE_CHESTPLATE", "ELYTRA" -> true;
-            default -> false;
-        };
+        return Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR.isTagged(material) || material.equals(Material.ELYTRA);
     }
 
     public static boolean isLeggings(Material material) {
-        return switch (material.name()) {
-            case "LEATHER_LEGGINGS", "CHAINMAIL_LEGGINGS", "IRON_LEGGINGS", "COPPER_LEGGINGS", "GOLDEN_LEGGINGS",
-                 "DIAMOND_LEGGINGS", "NETHERITE_LEGGINGS" -> true;
-            default -> false;
-        };
+        return Tag.ITEMS_ENCHANTABLE_LEG_ARMOR.isTagged(material);
     }
 
     public static boolean isBoots(Material material) {
-        return switch (material.name()) {
-            case "LEATHER_BOOTS", "CHAINMAIL_BOOTS", "IRON_BOOTS", "COPPER_BOOTS", "GOLDEN_BOOTS",
-                 "DIAMOND_BOOTS", "NETHERITE_BOOTS" -> true;
-            default -> false;
-        };
+        return Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR.isTagged(material);
     }
 
 }

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.artillexstudios"
-version = "1.26.1"
+version = "1.26.2"
 
 repositories {
     mavenCentral()
@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 
     implementation("com.artillexstudios.axapi:axapi:1.4.830")
     implementation("org.bstats:bstats-bukkit:3.1.0")

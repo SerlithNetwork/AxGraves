@@ -22,6 +22,7 @@ import com.artillexstudios.axgraves.utils.ExperienceUtils;
 import com.artillexstudios.axgraves.utils.InventoryUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
 import com.artillexstudios.axgraves.utils.Utils;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
@@ -73,7 +74,7 @@ public class Grave {
         this.gui = Bukkit.createInventory(
                 null,
                 InventoryUtils.getRequiredRows(items.size()) * 9,
-                StringUtils.formatToString(LANG.getString("gui-name").replace("%player%", playerName))
+                MiniMessage.miniMessage().deserialize(LANG.getString("gui-name").replace("%player%", playerName))
         );
 
         LocationUtils.clampLocation(location);
