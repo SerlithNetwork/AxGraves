@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 
-    implementation("com.artillexstudios.axapi:axapi:1.4.830")
+    implementation("com.artillexstudios.axapi:axapi:1.4.840")
     implementation("org.bstats:bstats-bukkit:3.1.0")
 }
 

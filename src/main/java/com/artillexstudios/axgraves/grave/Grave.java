@@ -74,7 +74,7 @@ public class Grave {
         this.gui = Bukkit.createInventory(
                 null,
                 InventoryUtils.getRequiredRows(items.size()) * 9,
-                MiniMessage.miniMessage().deserialize(LANG.getString("gui-name").replace("%player%", playerName))
+                MiniMessage.miniMessage().deserialize(LANG.getString("gui-name", "Grave").replace("%player%", playerName))
         );
 
         LocationUtils.clampLocation(location);
