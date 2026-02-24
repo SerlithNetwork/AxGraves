@@ -160,7 +160,7 @@ public class DeathListener implements Listener {
                         drops.add(item);
                     }
                 } else {
-                    drops = event.getDrops();
+                    drops.addAll(event.getDrops());
                 }
             } else if (overrideKeepInventory) {
                 store = true;
