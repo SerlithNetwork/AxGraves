@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.artillexstudios"
-version = "1.26.2"
+version = "1.28.0"
 
 repositories {
     mavenCentral()
@@ -27,8 +27,8 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("org.slf4j:slf4j-api:2.0.17")
 
-    implementation("com.artillexstudios.axapi:axapi:1.4.840")
-    implementation("org.bstats:bstats-bukkit:3.1.0")
+    implementation("com.artillexstudios.axapi:axapi:2.1.0-DEV-19")
+    implementation("org.bstats:bstats-bukkit:3.2.1")
 }
 
 val targetJavaVersion = 21
