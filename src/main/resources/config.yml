@@ -189,7 +189,7 @@ blacklisted-items:
 # however if the plugin is spawning graves without items, you can try setting this to lower values (lower = runs earlier)
 # values: LOWEST, LOW, NORMAL, HIGH, HIGHEST, MONITOR
 # requires a restart to change
-death-listener-priority: MONITOR
+death-listener-priority: HIGHEST
 
 # settings for holograms displays
 holograms:

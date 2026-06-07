@@ -132,6 +132,7 @@ public class Grave {
     }
 
     public void interact(@NotNull Player opener, ServerboundInteractWrapper.InteractionHand slot) {
+        if (opener.getLocation().distanceSquared(location) > 49) return;
         if (CONFIG.getBoolean("interact-only-own", false) && !opener.getUniqueId().equals(player.getUniqueId()) && !opener.hasPermission("axgraves.admin")) {
             MESSAGEUTILS.sendLang(opener, "interact.not-your-grave");
             return;
