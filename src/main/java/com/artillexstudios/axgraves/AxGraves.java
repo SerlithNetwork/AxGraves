@@ -21,6 +21,7 @@ import com.artillexstudios.axgraves.listeners.RespawnListener;
 import com.artillexstudios.axgraves.schedulers.SaveGraves;
 import com.artillexstudios.axgraves.schedulers.TickCompass;
 import com.artillexstudios.axgraves.schedulers.TickGraves;
+import com.artillexstudios.axgraves.utils.SchedulerOverrideUtils;
 import com.artillexstudios.axgraves.utils.UpdateNotifier;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bstats.bukkit.Metrics;
@@ -70,6 +71,7 @@ public final class AxGraves extends AxPlugin {
             event.registrar().register(AxCommands.buildAdminCommands(), "AxGraves admin commands");
             event.registrar().register(AxCommands.buildUserCommands(), "Graves user commands");
         });
+        SchedulerOverrideUtils.override(this);
         GravePlaceholders.register();
 
         if (CONFIG.getBoolean("save-graves.enabled", true)) {
