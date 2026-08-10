@@ -1,5 +1,6 @@
 package com.artillexstudios.axgraves.listeners;
 
+import com.artillexstudios.axapi.scheduler.Scheduler;
 import com.artillexstudios.axgraves.AxGraves;
 import com.artillexstudios.axgraves.utils.KeyUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
@@ -99,7 +100,7 @@ public class RespawnListener implements Listener {
             if (location != null) {
                 String rawDisplayName = RESPAWN_COMPASS_DISPLAY_NAME;
                 List<String> rawLore = RESPAWN_COMPASS_LORE;
-                Bukkit.getScheduler().runTaskAsynchronously(AxGraves.getInstance(), () -> {
+                Scheduler.get().runAsync(() -> {
                     World world = location.getWorld();
                     String worldName = LocationUtils.getWorldName(world);
                     ItemStack compass = ItemStack.of(Material.COMPASS, 1);
@@ -108,8 +109,8 @@ public class RespawnListener implements Listener {
                     meta.setLodestoneTracked(false);
                     meta.displayName(MiniMessage.miniMessage().deserialize(rawDisplayName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
                     meta.lore(rawLore.stream().map(s -> MiniMessage.miniMessage().deserialize(s,
-                                    Placeholder.unparsed("player", event.getPlayer().getName()),
-                                    Placeholder.component("face", Component.object(ObjectContents.playerHead(event.getPlayer().getName()))),
+                                    Placeholder.unparsed("player", player.getName()),
+                                    Placeholder.component("face", Component.object(ObjectContents.playerHead(player.getName()))),
                                     Placeholder.unparsed("world", worldName),
                                     Placeholder.unparsed("x", String.format("%.0f", location.x())),
                                     Placeholder.unparsed("y", String.format("%.0f", location.y())),
@@ -120,7 +121,7 @@ public class RespawnListener implements Listener {
                     meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                     compass.setItemMeta(meta);
                     compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
-                    Bukkit.getScheduler().runTask(AxGraves.getInstance(), () -> event.getPlayer().getInventory().addItem(compass));
+                    player.getScheduler().run(AxGraves.getInstance(), task -> player.getInventory().addItem(compass), null);
                 });
             }
         }
