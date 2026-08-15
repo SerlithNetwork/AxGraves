@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
@@ -50,7 +51,7 @@ public class RespawnListener implements Listener {
         RESPAWN_TITLE_DURATION_FADE_IN = CONFIG.getLong("respawn-title.duration.fade-in", 0L);
         RESPAWN_TITLE_DURATION_STAY = CONFIG.getLong("respawn-title.duration.stay", 200L);
         RESPAWN_TITLE_DURATION_FADE_OUT = CONFIG.getLong("respawn-title.duration.fade-out", 0L);
-        RESPAWN_TITLE_DELAY = CONFIG.getLong("respawn-title.delay", 40L);
+        RESPAWN_TITLE_DELAY = CONFIG.getLong("respawn-title.delay", 2L);
 
         RESPAWN_COMPASS_ENABLED = CONFIG.getBoolean("respawn-compass.enabled", false);
         RESPAWN_COMPASS_DISPLAY_NAME = CONFIG.getString("respawn-compass.display-name", "");
@@ -71,7 +72,7 @@ public class RespawnListener implements Listener {
             final long fadeIn = RESPAWN_TITLE_DURATION_FADE_IN;
             final long stay = RESPAWN_TITLE_DURATION_STAY;
             final long fadeOut = RESPAWN_TITLE_DURATION_FADE_OUT;
-            Bukkit.getScheduler().runTaskLaterAsynchronously(AxGraves.getInstance(), () -> {
+            Bukkit.getAsyncScheduler().runDelayed(AxGraves.getInstance(), ignore -> {
                 Location location = LocationUtils.DEATH_LOCATIONS.get(player.getUniqueId());
                 if (location == null) {
                     return;
@@ -92,7 +93,7 @@ public class RespawnListener implements Listener {
                                 )
                         )
                 );
-            }, RESPAWN_TITLE_DELAY);
+            }, RESPAWN_TITLE_DELAY, TimeUnit.SECONDS);
         }
 
         if (RESPAWN_COMPASS_ENABLED) {

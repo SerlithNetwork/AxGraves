@@ -53,8 +53,8 @@ soft-keep-inventory:
 respawn-title:
   enabled: true
   message: "<red>You died! [<x>, <y>]"
-  # delay in ticks
-  delay: 40
+  # delay in seconds
+  delay: 2
   # durations in milliseconds
   duration:
     fade-in: 500
