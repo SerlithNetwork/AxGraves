@@ -22,11 +22,8 @@ import com.artillexstudios.axgraves.utils.ExperienceUtils;
 import com.artillexstudios.axgraves.utils.InventoryUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
 import com.artillexstudios.axgraves.utils.Utils;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
@@ -77,7 +74,7 @@ public class Grave {
         this.gui = Bukkit.createInventory(
                 null,
                 InventoryUtils.getRequiredRows(items.size()) * 9,
-                StringUtils.formatToString(LANG.getString("gui-name").replace("%player%", playerName))
+                MiniMessage.miniMessage().deserialize(LANG.getString("gui-name", "Grave").replace("%player%", playerName))
         );
 
         LocationUtils.clampLocation(location);
@@ -229,6 +226,7 @@ public class Grave {
             meta.shadow(section.getBoolean("shadow", true));
             meta.alignment(TextDisplayMeta.Alignment.valueOf(section.getString("alignment").toUpperCase()));
             meta.backgroundColor(Integer.parseInt(section.getString("background-color"), 16));
+            meta.shadow(Boolean.parseBoolean(section.getString("shadow")));
             meta.lineWidth(1000);
             meta.billboardConstrain(DisplayMeta.BillboardConstrain.valueOf(section.getString("billboard").toUpperCase()));
         });
@@ -273,8 +271,12 @@ public class Grave {
             for (ItemStack it : gui.getContents()) {
                 if (it == null) continue;
                 final Item item = location.getWorld().dropItem(location.clone(), it);
-                if (CONFIG.getBoolean("dropped-item-velocity", true)) continue;
-                item.setVelocity(ZERO_VECTOR);
+                if (!CONFIG.getBoolean("dropped-item-velocity", true)) {
+                    item.setVelocity(ZERO_VECTOR);
+                }
+                if (CONFIG.getBoolean("dropped-item-glowing", true)) {
+                    item.setGlowing(true);
+                }
             }
         }
 

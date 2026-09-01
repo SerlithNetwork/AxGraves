@@ -11,15 +11,20 @@ import com.artillexstudios.axapi.metrics.AxMetrics;
 import com.artillexstudios.axapi.utils.MessageUtils;
 import com.artillexstudios.axapi.utils.featureflags.FeatureFlags;
 import com.artillexstudios.axapi.utils.file.FileUtils;
+import com.artillexstudios.axgraves.commands.AxCommands;
 import com.artillexstudios.axgraves.commands.CommandManager;
 import com.artillexstudios.axgraves.grave.Grave;
 import com.artillexstudios.axgraves.grave.GravePlaceholders;
 import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.listeners.DeathListener;
 import com.artillexstudios.axgraves.listeners.PlayerInteractListener;
+import com.artillexstudios.axgraves.listeners.RespawnListener;
 import com.artillexstudios.axgraves.schedulers.SaveGraves;
+import com.artillexstudios.axgraves.schedulers.TickCompass;
 import com.artillexstudios.axgraves.schedulers.TickGraves;
+import com.artillexstudios.axgraves.utils.SchedulerOverrideUtils;
 import com.artillexstudios.axgraves.utils.UpdateNotifier;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bstats.bukkit.Metrics;
 
 import java.io.File;
@@ -72,9 +77,15 @@ public final class AxGraves extends AxPlugin {
         MESSAGEUTILS = new MessageUtils(LANG.getBackingDocument(), "prefix", CONFIG.getBackingDocument());
 
         new DeathListener();
+        new RespawnListener();
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
 
-        CommandManager.load();
+        // CommandManager.load();
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(AxCommands.buildAdminCommands(), "AxGraves admin commands");
+            event.registrar().register(AxCommands.buildUserCommands(), "Graves user commands");
+        });
+        SchedulerOverrideUtils.override(this);
         GravePlaceholders.register();
 
         if (CONFIG.getBoolean("save-graves.enabled", true)) {
@@ -83,6 +94,7 @@ public final class AxGraves extends AxPlugin {
 
         TickGraves.start();
         SaveGraves.start();
+        TickCompass.start();
 
         metrics = new AxMetrics(this, 20);
         metrics.start();
@@ -96,6 +108,7 @@ public final class AxGraves extends AxPlugin {
 
         TickGraves.stop();
         SaveGraves.stop();
+        TickCompass.stop();
 
         for (Grave grave : SpawnedGraves.getGraves()) {
             if (!CONFIG.getBoolean("save-graves.enabled", true)) grave.remove();
