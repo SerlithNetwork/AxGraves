@@ -1,31 +1,38 @@
 package com.artillexstudios.axgraves.utils;
 
+import com.artillexstudios.axapi.items.WrappedItemStack;
 import com.artillexstudios.axapi.nms.wrapper.ServerPlayerWrapper;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
 public class Utils {
 
     @NotNull
-    public static ItemStack getPlayerHead(@NotNull OfflinePlayer player) {
+    public static WrappedItemStack getPlayerHead(@Nullable String texture) {
         ItemBuilder builder = ItemBuilder.create(Material.PLAYER_HEAD);
+        if (texture != null) {
+            builder.setTextureValue(texture);
+        }
+        return builder.wrapped();
+    }
 
-        String texture = null;
+    @NotNull
+    public static String getTexture(@NotNull Player player) {
+        String texture;
         if (CONFIG.getBoolean("custom-grave-skull.enabled", false)) {
             texture = CONFIG.getString("custom-grave-skull.base64");
-        } else if (player.getPlayer() != null) {
+        } else {
             ServerPlayerWrapper wrapper = ServerPlayerWrapper.wrap(player);
             texture = wrapper.textures().texture();
         }
-
-        if (texture != null) builder.setTextureValue(texture);
-
-        return builder.get();
+        return texture;
     }
 
     public static boolean isHelmet(Material material) {

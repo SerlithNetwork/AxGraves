@@ -1,25 +1,16 @@
 package com.artillexstudios.axgraves.grave;
 
-import com.artillexstudios.axapi.serializers.Serializers;
 import com.artillexstudios.axgraves.AxGraves;
 import com.artillexstudios.axgraves.utils.LimitUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
@@ -57,52 +48,37 @@ public class SpawnedGraves {
     }
 
     public static void saveToFile() {
-        final JsonArray array = new JsonArray(graves.size());
-
+        List<SavedGrave> savedGraves = new ArrayList<>();
         for (Grave grave : graves) {
-            final JsonObject obj = new JsonObject();
-            obj.addProperty("location", Serializers.LOCATION.serialize(grave.getLocation()));
-            obj.addProperty("owner", grave.getPlayer().getUniqueId().toString());
-            obj.addProperty("items", Base64.getEncoder().encodeToString(Serializers.ITEM_ARRAY.serialize(grave.getGui().getContents())));
-            obj.addProperty("xp", grave.getStoredXP());
-            obj.addProperty("date", grave.getSpawned());
-
-            array.add(obj);
+            SavedGrave savedGrave = SavedGrave.create(grave);
+            savedGraves.add(savedGrave);
         }
 
         File file = new File(AxGraves.getInstance().getDataFolder(), "data.json");
         try (FileWriter fw = new FileWriter(file)) {
-            gson.toJson(array, fw);
+            gson.toJson(savedGraves, fw);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     public static void loadFromFile() {
-        JsonArray array;
+        SavedGrave[] savedGraves;
         File file = new File(AxGraves.getInstance().getDataFolder(), "data.json");
+        if (!file.exists()) return;
         try (FileReader fw = new FileReader(file)) {
-            array = gson.fromJson(fw, JsonArray.class);
+            savedGraves = gson.fromJson(fw, SavedGrave[].class);
         } catch (Exception ex) {
+            ex.printStackTrace();
             return;
         }
         file.delete();
-        if (array == null) return;
+        if (savedGraves == null) return;
 
-        try {
-            for (JsonElement el : array) {
-                JsonObject obj = el.getAsJsonObject();
-                Location location = Serializers.LOCATION.deserialize(obj.get("location").getAsString());
-                if (location == null || location.getWorld() == null) continue;
-                OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString(obj.get("owner").getAsString()));
-                String itStr = obj.get("items").getAsString();
-                ItemStack[] items = Serializers.ITEM_ARRAY.deserialize(Base64.getDecoder().decode(itStr));
-                int xp = obj.get("xp").getAsInt();
-                long date = obj.get("date").getAsLong();
-                addGrave(new Grave(location, owner, Arrays.asList(items), xp, date));
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        for (SavedGrave savedGrave : savedGraves) {
+            Grave grave = savedGrave.load();
+            if (grave == null) continue;
+            addGrave(grave);
         }
     }
 }

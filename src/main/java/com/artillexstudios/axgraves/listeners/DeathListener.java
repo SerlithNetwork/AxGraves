@@ -146,7 +146,7 @@ public class DeathListener implements Listener {
             if (debug) LogUtils.debug("[{}] return: drops empty and xp is 0", player.getName());
             return;
         }
-        Grave grave = new Grave(location, player, drops, xp, System.currentTimeMillis());
+        Grave grave = new Grave(location, player, drops, xp, System.currentTimeMillis(), null);
         SpawnedGraves.addGrave(grave);
         if (debug) LogUtils.debug("[{}] created and added grave", player.getName());
 

@@ -3,7 +3,7 @@
 
     <groupId>com.artillexstudios</groupId>
     <artifactId>AxGraves</artifactId>
-    <version>1.30.0</version>
+    <version>1.31.0</version>
     <packaging>jar</packaging>
 
     <name>AxGraves</name>

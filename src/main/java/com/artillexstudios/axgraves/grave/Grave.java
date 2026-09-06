@@ -58,9 +58,10 @@ public class Grave {
     private int storedXP;
     private final PacketEntity entity;
     private Hologram hologram;
+    private String texture;
     private boolean removed = false;
 
-    public Grave(Location loc, @NotNull OfflinePlayer offlinePlayer, @NotNull List<ItemStack> items, int storedXP, long date) {
+    public Grave(Location loc, @NotNull OfflinePlayer offlinePlayer, @NotNull List<ItemStack> items, int storedXP, long date, @Nullable String texture) {
         items = new ArrayList<>(items);
         items.removeIf(it -> {
             if (it == null) return true;
@@ -88,15 +89,25 @@ public class Grave {
             if (LANG.getBoolean("death-message.enabled", false)) {
                 MESSAGEUTILS.sendLang(pl, "death-message.message", Map.of("%world%", LocationUtils.getWorldName(location.getWorld()), "%x%", "" + location.getBlockX(), "%y%", "" + location.getBlockY(), "%z%", "" + location.getBlockZ()));
             }
+            if (texture == null) {
+                texture = Utils.getTexture(pl);
+            }
         }
         items.forEach(gui::addItem);
 
-        this.entity = NMSHandlers.getNmsHandler().createEntity(EntityType.ARMOR_STAND, location.clone().add(0, 1 + CONFIG.getFloat("head-height", -1.2f), 0));
-        entity.setItem(EquipmentSlot.HELMET, WrappedItemStack.wrap(Utils.getPlayerHead(offlinePlayer)));
-        final ArmorStandMeta meta = (ArmorStandMeta) entity.meta();
-        meta.small(true);
-        meta.invisible(true);
-        meta.setNoBasePlate(false);
+        Location cloned = location.clone();
+        cloned.add(0, 1 + CONFIG.getFloat("head-height", -1.2f), 0);
+        this.entity = NMSHandlers.getNmsHandler().createEntity(EntityType.ARMOR_STAND, cloned);
+
+        WrappedItemStack wrapped = Utils.getPlayerHead(texture);
+        this.texture = texture;
+        entity.setItem(EquipmentSlot.HELMET, wrapped);
+
+        if (entity.meta() instanceof ArmorStandMeta meta) {
+            meta.small(true);
+            meta.invisible(true);
+            meta.setNoBasePlate(false);
+        }
         entity.spawn();
 
         if (CONFIG.getBoolean("rotate-head-360", true)) {
@@ -318,6 +329,10 @@ public class Grave {
 
     public PacketEntity getEntity() {
         return entity;
+    }
+
+    public String getTexture() {
+        return texture;
     }
 
     public Hologram getHologram() {
