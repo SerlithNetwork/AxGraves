@@ -1,15 +1,17 @@
-// data structure file, not used anywhere
+// example data structure file, not used anywhere
 [
   {
     "location": "world;1;1;1;0;0",
-    "owner": "player",
+    "owner": "player uuid",
+    "texture": "",
     "items": "",
     "xp": "",
     "date": 0
   },
   {
     "location": "world;1;1;1;0;0",
-    "owner": "player",
+    "owner": "player uuid",
+    "texture": "",
     "items": "",
     "xp": "",
     "date": 0
