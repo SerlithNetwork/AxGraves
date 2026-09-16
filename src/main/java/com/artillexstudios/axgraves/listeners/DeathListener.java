@@ -7,6 +7,7 @@ import com.artillexstudios.axgraves.api.events.GraveSpawnEvent;
 import com.artillexstudios.axgraves.grave.Grave;
 import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.utils.ExperienceUtils;
+import com.artillexstudios.axgraves.utils.LocationUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,11 +15,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.EventExecutor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
@@ -30,6 +31,12 @@ public class DeathListener implements Listener {
     private static boolean storeItems;
     private static boolean storeXP;
     private static float xpKeepPercentage;
+    private static boolean softKeepInventory;
+    private static float softInventoryPercentage;
+    private static float softPityPercentage;
+    private static boolean softPityArmor;
+    private static boolean softPityMainHand;
+    private static boolean softPityOffHand;
 
     public static void reload() {
         disabledWorlds = CONFIG.getStringList("disabled-worlds");
@@ -39,6 +46,12 @@ public class DeathListener implements Listener {
         storeItems = CONFIG.getBoolean("store-items", true);
         storeXP = CONFIG.getBoolean("store-xp", true);
         xpKeepPercentage = CONFIG.getFloat("xp-keep-percentage", 1f);
+        softKeepInventory = CONFIG.getBoolean("soft-keep-inventory.enabled", false);
+        softInventoryPercentage = CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f);
+        softPityPercentage = CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f);
+        softPityArmor = CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true);
+        softPityMainHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true);
+        softPityOffHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true);
     }
 
     public DeathListener() {
@@ -99,6 +112,7 @@ public class DeathListener implements Listener {
             if (debug) LogUtils.debug("[{}] return: GravePreSpawnEvent cancelled", player.getName());
             return;
         }
+        LocationUtils.DEATH_LOCATIONS.put(player.getUniqueId(), location);
 
         if (debug) {
             LogUtils.debug("[{}] storeItems: {} - getKeepInventory: {} - overrideKeepInventory: {}", player.getName(), storeItems, event.getKeepInventory(), overrideKeepInventory);
@@ -111,7 +125,43 @@ public class DeathListener implements Listener {
 
             if (!event.getKeepInventory()) {
                 store = true;
-                drops = new ArrayList<>(event.getDrops());
+                if (softKeepInventory) {
+                    int limit = (int) (event.getDrops().size() * softInventoryPercentage);
+                    List<ItemStack> items = event.getDrops();
+                    Collections.shuffle(items);
+                    Iterator<ItemStack> iterator = items.iterator();
+
+                    PlayerInventory inventory = player.getInventory();
+                    List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
+                    Random random = ThreadLocalRandom.current();
+                    for (int i = 0; iterator.hasNext(); i++) {
+                        ItemStack item = iterator.next();
+
+                        if (i < limit) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
+
+                        if (random.nextFloat() < softPityPercentage) {
+                            if (softPityArmor && armorContents.contains(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityMainHand && inventory.getItemInMainHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityOffHand && inventory.getItemInOffHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                        }
+
+                        drops.add(item);
+                    }
+                } else {
+                    drops.addAll(event.getDrops());
+                }
             } else if (overrideKeepInventory) {
                 store = true;
                 drops = Arrays.asList(player.getInventory().getContents());
@@ -153,4 +203,5 @@ public class DeathListener implements Listener {
         final GraveSpawnEvent graveSpawnEvent = new GraveSpawnEvent(player, grave);
         Bukkit.getPluginManager().callEvent(graveSpawnEvent);
     }
+
 }
