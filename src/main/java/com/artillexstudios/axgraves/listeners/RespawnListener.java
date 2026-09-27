@@ -24,7 +24,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.Duration;
 import java.util.List;
@@ -32,18 +32,19 @@ import java.util.concurrent.TimeUnit;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 
+@NullMarked
 public class RespawnListener implements Listener {
 
     private static boolean RESPAWN_TITLE_ENABLED;
-    private static String RESPAWN_TITLE_MESSAGE;
+    private static String RESPAWN_TITLE_MESSAGE = "";
     private static long RESPAWN_TITLE_DURATION_FADE_IN;
     private static long RESPAWN_TITLE_DURATION_STAY;
     private static long RESPAWN_TITLE_DURATION_FADE_OUT;
     private static long RESPAWN_TITLE_DELAY;
 
     private static boolean RESPAWN_COMPASS_ENABLED;
-    private static String RESPAWN_COMPASS_DISPLAY_NAME;
-    private static List<String> RESPAWN_COMPASS_LORE;
+    private static String RESPAWN_COMPASS_DISPLAY_NAME = "";
+    private static List<String> RESPAWN_COMPASS_LORE = List.of();
 
     public static void reload() {
         RESPAWN_TITLE_ENABLED = CONFIG.getBoolean("respawn-title.enabled", false);
@@ -64,7 +65,7 @@ public class RespawnListener implements Listener {
     }
 
     @EventHandler
-    public void onRespawn(@NotNull PlayerPostRespawnEvent event) {
+    public void onRespawn(final PlayerPostRespawnEvent event) {
         final Player player = event.getPlayer();
 
         if (RESPAWN_TITLE_ENABLED) {
@@ -130,7 +131,7 @@ public class RespawnListener implements Listener {
     }
 
     @EventHandler
-    public void onQuit(@NotNull PlayerQuitEvent event) {
+    public void onQuit(final PlayerQuitEvent event) {
         LocationUtils.DEATH_LOCATIONS.remove(event.getPlayer().getUniqueId());
     }
 
