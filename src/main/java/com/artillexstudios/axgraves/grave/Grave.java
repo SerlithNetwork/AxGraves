@@ -272,7 +272,8 @@ public class Grave {
             if (entity != null) entity.remove();
             if (hologram != null) hologram.remove();
         };
-        if (this.player.isOnline() && this.player instanceof Player owner) {
+        Player owner = this.player instanceof Player onlinePlayer ? onlinePlayer : Bukkit.getPlayer(this.player.getUniqueId());
+        if (owner != null) {
             owner.getScheduler().execute(com.artillexstudios.axgraves.AxGraves.getInstance(), () -> {
                 for (ItemStack item : owner.getInventory()) {
                     if (!net.serlith.axgraves.utils.SerlithUtils.isRespawnCompass(item)) {
