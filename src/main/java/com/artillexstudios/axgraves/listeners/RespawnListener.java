@@ -22,6 +22,9 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -32,11 +35,9 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -154,6 +155,33 @@ public class RespawnListener implements Listener {
         ) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        HumanEntity human = event.getWhoClicked();
+        ItemStack cursor = event.getCursor();
+        if (event.getClickedInventory() == event.getInventory() && cursor.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS) && !human.hasPermission("axgraves.compass.move.bypass")) {
+            event.setCancelled(true);
+            return;
+        }
+        ItemStack clicked = event.getCurrentItem();
+        if (event.getClick() == ClickType.SHIFT_LEFT && clicked != null && clicked.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS) && !human.hasPermission("axgraves.compass.move.bypass")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        ItemStack item = event.getCursor();
+        if (item == null || !item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+            return;
+        }
+        HumanEntity human = event.getWhoClicked();
+        if (human.hasPermission("axgraves.compass.move.bypass")) {
+            return;
+        }
+        event.setCancelled(true);
     }
 
     @EventHandler
