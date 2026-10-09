@@ -206,7 +206,7 @@ public class RespawnListener implements Listener {
         }
 
         if (!event.getPlayer().hasPermission("axgraves.compass.move.bypass")) {
-            event.setCancelled(true);
+            event.getItemDrop().remove();
         }
     }
 
