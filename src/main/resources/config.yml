@@ -12,6 +12,9 @@ drop-items: true
 # if drop-items is true, should the dropped items have a velocity? (so should they fly around when dropped or stay in one block?)
 dropped-item-velocity: true
 
+# if drop-items is true, should the dropped items glow?
+dropped-item-glowing: true
+
 # should players have the ability to take all items from a death chest by shift right clicking?
 enable-instant-pickup: true
 
@@ -25,6 +28,48 @@ override-keep-inventory: false
 
 # if you enable this, xp levels will be taken away and stored in the grave on death, even if third party plugin tries to keep them
 override-keep-level: false
+
+# should _some_ items be kept when the player dies
+soft-keep-inventory:
+  enabled: false
+
+  # how much of the inventory will be kept on death
+  # the rest will be placed on the grave
+  percentage: 0.5
+
+  # should some items have an extra chance of being kept
+  pity:
+
+    # change to trigger pity
+    percentage: 0.8
+
+    # inventory slots to _possibly_ keep
+    slots:
+      armor-contents: true
+      main-hand: true
+      off-hand: true
+
+# Send a title on respawn
+respawn-title:
+  enabled: true
+  message: "<red>You died! [<x>, <y>]"
+  # delay in seconds
+  delay: 2
+  # durations in milliseconds
+  duration:
+    fade-in: 500
+    stay: 3000
+    fade-out: 500
+
+# Respawn compass
+respawn-compass:
+  enabled: true
+  display-name: "<red>Death Location"
+  lore:
+    - ""
+    - "<gray>Owner:</gray> <white><face> <player></white>"
+    - "<gray>Location:</gray> <red>[<white><x></white>, <white><y></white>, <white><z></white>]</red>"
+    - ""
 
 # how high should grave holograms spawn?
 # only applies to new graves

@@ -30,6 +30,12 @@ public class DeathListener implements Listener {
     private static boolean storeItems;
     private static boolean storeXP;
     private static float xpKeepPercentage;
+    private static boolean softKeepInventory;
+    private static float softInventoryPercentage;
+    private static float softPityPercentage;
+    private static boolean softPityArmor;
+    private static boolean softPityMainHand;
+    private static boolean softPityOffHand;
 
     public static void reload() {
         disabledWorlds = CONFIG.getStringList("disabled-worlds");
@@ -39,6 +45,12 @@ public class DeathListener implements Listener {
         storeItems = CONFIG.getBoolean("store-items", true);
         storeXP = CONFIG.getBoolean("store-xp", true);
         xpKeepPercentage = CONFIG.getFloat("xp-keep-percentage", 1f);
+        softKeepInventory = CONFIG.getBoolean("soft-keep-inventory.enabled", false);
+        softInventoryPercentage = CONFIG.getFloat("soft-keep-inventory.percentage", 0.5f);
+        softPityPercentage = CONFIG.getFloat("soft-keep-inventory.pity.percentage", 0.8f);
+        softPityArmor = CONFIG.getBoolean("soft-keep-inventory.pity.slots.armor-contents", true);
+        softPityMainHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.main-hand", true);
+        softPityOffHand = CONFIG.getBoolean("soft-keep-inventory.pity.slots.off-hand", true);
     }
 
     public DeathListener() {
@@ -100,6 +112,7 @@ public class DeathListener implements Listener {
             return;
         }
 
+        net.serlith.axgraves.utils.SerlithUtils.DEATH_LOCATIONS.put(player.getUniqueId(), location);
         if (debug) {
             LogUtils.debug("[{}] storeItems: {} - getKeepInventory: {} - overrideKeepInventory: {}", player.getName(), storeItems, event.getKeepInventory(), overrideKeepInventory);
             LogUtils.debug("[{}] storeXP: {} - getKeepLevel: {} - overrideKeepLevel: {}", player.getName(), storeXP, event.getKeepLevel(), overrideKeepLevel);
@@ -111,7 +124,49 @@ public class DeathListener implements Listener {
 
             if (!event.getKeepInventory()) {
                 store = true;
-                drops = new ArrayList<>(event.getDrops());
+                List<ItemStack> items = event.getDrops();
+                if (softKeepInventory) {
+                    int limit = (int) (items.size() * softInventoryPercentage);
+                    java.util.Collections.shuffle(items);
+                    java.util.Iterator<org.bukkit.inventory.ItemStack> iterator = items.iterator();
+
+                    org.bukkit.inventory.PlayerInventory inventory = player.getInventory();
+                    List<ItemStack> armorContents = Arrays.asList(inventory.getArmorContents());
+                    java.util.Random random = java.util.concurrent.ThreadLocalRandom.current();
+                    for (int i = 0; iterator.hasNext(); i++) {
+                        ItemStack item = iterator.next();
+
+                        if (net.serlith.axgraves.utils.SerlithUtils.isRespawnCompass(item)) {
+                            continue;
+                        }
+
+                        if (i < limit) {
+                            event.getItemsToKeep().add(item);
+                            continue;
+                        }
+
+                        if (random.nextFloat() < softPityPercentage) {
+                            if (softPityArmor && armorContents.contains(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityMainHand && inventory.getItemInMainHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                            if (softPityOffHand && inventory.getItemInOffHand().equals(item)) {
+                                event.getItemsToKeep().add(item);
+                                continue;
+                            }
+                        }
+
+                        drops.add(item);
+                    }
+                } else {
+                    drops.addAll(
+                            items.stream().filter(net.serlith.axgraves.utils.SerlithUtils::isNotRespawnCompass).toList()
+                    );
+                }
             } else if (overrideKeepInventory) {
                 store = true;
                 drops = Arrays.asList(player.getInventory().getContents());

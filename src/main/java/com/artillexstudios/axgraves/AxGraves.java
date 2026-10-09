@@ -73,15 +73,24 @@ public final class AxGraves extends AxPlugin {
         MESSAGEUTILS = new MessageUtils(LANG.getBackingDocument(), "prefix", CONFIG.getBackingDocument());
 
         new DeathListener();
+        new net.serlith.axgraves.listeners.RespawnListener();
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
 
+        this.getLifecycleManager().registerEventHandler(io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(net.serlith.axgraves.commands.AxCommands.buildAdminCommands(), "AxGraves admin commands");
+            event.registrar().register(net.serlith.axgraves.commands.AxCommands.buildUserCommands(), "Graves user commands");
+        });
+        net.serlith.axgraves.utils.SchedulerOverrideUtils.override(this);
+        /*
         CommandManager.load();
+        */
         GravePlaceholders.register();
 
         if (CONFIG.getBoolean("save-graves.enabled", true)) {
             SpawnedGraves.loadFromFile();
         }
 
+        net.serlith.axgraves.schedulers.TickCompass.start();
         TickGraves.start();
         SaveGraves.start();
 
@@ -95,6 +104,7 @@ public final class AxGraves extends AxPlugin {
     public void disable() {
         if (metrics != null) metrics.cancel();
 
+        net.serlith.axgraves.schedulers.TickCompass.stop();
         TickGraves.stop();
         SaveGraves.stop();
 

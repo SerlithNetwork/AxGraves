@@ -172,25 +172,25 @@ public class Grave {
 
                 if (CONFIG.getBoolean("auto-equip-armor", true)) {
                     Material material = it.getType();
-                    if (isSlotEmpty(inventory.getHelmet()) && Utils.isHelmet(material)) {
+                    if (isSlotEmpty(inventory.getHelmet()) && net.serlith.axgraves.utils.SerlithUtils.isHelmet(material)) {
                         inventory.setHelmet(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (isSlotEmpty(inventory.getChestplate()) && Utils.isChestplate(material)) {
+                    if (isSlotEmpty(inventory.getChestplate()) && net.serlith.axgraves.utils.SerlithUtils.isChestplate(material)) {
                         inventory.setChestplate(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (isSlotEmpty(inventory.getLeggings()) && Utils.isLeggings(material)) {
+                    if (isSlotEmpty(inventory.getLeggings()) && net.serlith.axgraves.utils.SerlithUtils.isLeggings(material)) {
                         inventory.setLeggings(it);
                         it.setAmount(0);
                         continue;
                     }
 
-                    if (isSlotEmpty(inventory.getBoots()) && Utils.isBoots(material)) {
+                    if (isSlotEmpty(inventory.getBoots()) && net.serlith.axgraves.utils.SerlithUtils.isBoots(material)) {
                         inventory.setBoots(it);
                         it.setAmount(0);
                         continue;
@@ -272,6 +272,16 @@ public class Grave {
             if (entity != null) entity.remove();
             if (hologram != null) hologram.remove();
         };
+        if (this.player.isOnline() && this.player instanceof Player owner) {
+            owner.getScheduler().execute(com.artillexstudios.axgraves.AxGraves.getInstance(), () -> {
+                for (ItemStack item : owner.getInventory()) {
+                    if (!net.serlith.axgraves.utils.SerlithUtils.isRespawnCompass(item)) {
+                        continue;
+                    }
+                    item.setAmount(0);
+                }
+            }, null, 0);
+        }
 
         if (Scheduler.get().isOwnedByCurrentRegion(location)) runnable.run();
         else Scheduler.get().runAt(location, runnable);
@@ -284,8 +294,12 @@ public class Grave {
             for (ItemStack it : gui.getContents()) {
                 if (it == null) continue;
                 final Item item = location.getWorld().dropItem(location.clone(), it);
-                if (CONFIG.getBoolean("dropped-item-velocity", true)) continue;
-                item.setVelocity(ZERO_VECTOR);
+                if (!CONFIG.getBoolean("dropped-item-velocity", true)) {
+                    item.setVelocity(ZERO_VECTOR);
+                }
+                if (CONFIG.getBoolean("dropped-item-glowing", true)) {
+                    item.setGlowing(true);
+                }
             }
         }
 

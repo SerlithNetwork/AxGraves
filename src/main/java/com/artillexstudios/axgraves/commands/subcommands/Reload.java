@@ -39,6 +39,7 @@ public enum Reload {
         });
 
         AxGraves.setDebugMode(CONFIG.getBoolean("debug", false));
+        net.serlith.axgraves.listeners.RespawnListener.reload();
         DeathListener.reload();
         GravePlaceholders.reload();
         SaveGraves.start();
