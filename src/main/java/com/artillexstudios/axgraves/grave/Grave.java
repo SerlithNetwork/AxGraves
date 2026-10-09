@@ -15,13 +15,10 @@ import com.artillexstudios.axapi.packetentity.meta.entity.TextDisplayMeta;
 import com.artillexstudios.axapi.scheduler.Scheduler;
 import com.artillexstudios.axapi.utils.EquipmentSlot;
 import com.artillexstudios.axapi.utils.StringUtils;
+import com.artillexstudios.axgraves.AxGraves;
 import com.artillexstudios.axgraves.api.events.GraveInteractEvent;
 import com.artillexstudios.axgraves.api.events.GraveOpenEvent;
-import com.artillexstudios.axgraves.utils.BlacklistUtils;
-import com.artillexstudios.axgraves.utils.ExperienceUtils;
-import com.artillexstudios.axgraves.utils.InventoryUtils;
-import com.artillexstudios.axgraves.utils.LocationUtils;
-import com.artillexstudios.axgraves.utils.Utils;
+import com.artillexstudios.axgraves.utils.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
@@ -36,10 +33,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.artillexstudios.axgraves.AxGraves.CONFIG;
 import static com.artillexstudios.axgraves.AxGraves.LANG;
@@ -270,6 +264,18 @@ public class Grave {
             if (entity != null) entity.remove();
             if (hologram != null) hologram.remove();
         };
+        if (this.player.isOnline() && this.player instanceof Player owner) {
+            owner.getScheduler().execute(AxGraves.getInstance(), () -> {
+                Iterator<ItemStack> items = owner.getInventory().iterator();
+                while (items.hasNext()) {
+                    ItemStack item = items.next();
+                    if (!item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+                        continue;
+                    }
+                    items.remove();
+                }
+            }, null, 0);
+        }
 
         if (Scheduler.get().isOwnedByCurrentRegion(location)) runnable.run();
         else Scheduler.get().runAt(location, runnable);

@@ -2,6 +2,8 @@ package com.artillexstudios.axgraves.listeners;
 
 import com.artillexstudios.axapi.scheduler.Scheduler;
 import com.artillexstudios.axgraves.AxGraves;
+import com.artillexstudios.axgraves.grave.Grave;
+import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.utils.KeyUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -16,17 +18,24 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.NullMarked;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -100,29 +109,8 @@ public class RespawnListener implements Listener {
         if (RESPAWN_COMPASS_ENABLED) {
             Location location = LocationUtils.DEATH_LOCATIONS.get(player.getUniqueId());
             if (location != null) {
-                String rawDisplayName = RESPAWN_COMPASS_DISPLAY_NAME;
-                List<String> rawLore = RESPAWN_COMPASS_LORE;
                 Scheduler.get().runAsync(() -> {
-                    World world = location.getWorld();
-                    String worldName = LocationUtils.getWorldName(world);
-                    ItemStack compass = ItemStack.of(Material.COMPASS, 1);
-                    CompassMeta meta = (CompassMeta) compass.getItemMeta();
-                    meta.setLodestone(location.clone());
-                    meta.setLodestoneTracked(false);
-                    meta.displayName(MiniMessage.miniMessage().deserialize(rawDisplayName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
-                    meta.lore(rawLore.stream().map(s -> MiniMessage.miniMessage().deserialize(s,
-                                    Placeholder.unparsed("player", player.getName()),
-                                    Placeholder.component("face", Component.object(ObjectContents.playerHead(player.getName()))),
-                                    Placeholder.unparsed("world", worldName),
-                                    Placeholder.unparsed("x", String.format("%.0f", location.x())),
-                                    Placeholder.unparsed("y", String.format("%.0f", location.y())),
-                                    Placeholder.unparsed("z", String.format("%.0f", location.z()))
-                            ).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList()
-                    );
-                    meta.addEnchant(Enchantment.UNBREAKING, 1, false);
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                    compass.setItemMeta(meta);
-                    compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
+                    ItemStack compass = this.generateDeathCompass(player, location);
                     player.getScheduler().run(AxGraves.getInstance(), task -> player.getInventory().addItem(compass), null);
                 });
             }
@@ -131,8 +119,79 @@ public class RespawnListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        Scheduler.get().runAsync(() -> {
+            List<ItemStack> compasses = new ArrayList<>();
+            for (Grave grave : SpawnedGraves.getGraves()) {
+                compasses.add(this.generateDeathCompass(player, grave.getLocation()));
+            }
+            player.getScheduler().run(AxGraves.getInstance(), task -> player.getInventory().addItem(compasses.toArray(ItemStack[]::new)), null);
+        });
+    }
+
+    @EventHandler
     public void onQuit(final PlayerQuitEvent event) {
         LocationUtils.DEATH_LOCATIONS.remove(event.getPlayer().getUniqueId());
+        Iterator<ItemStack> items = event.getPlayer().getInventory().iterator();
+        while (items.hasNext()) {
+            ItemStack item = items.next();
+            if (!item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+                continue;
+            }
+            items.remove();
+        }
+    }
+
+    @EventHandler
+    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+        if (!event.getItem().getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+            return;
+        }
+
+        if (event.getSource() instanceof PlayerInventory inventory
+                && inventory.getHolder() instanceof HumanEntity human
+                && !human.hasPermission("axgraves.compass.move.bypass")
+        ) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (!event.getItemDrop().getItemStack().getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+            return;
+        }
+
+        if (!event.getPlayer().hasPermission("axgraves.compass.move.bypass")) {
+            event.setCancelled(true);
+        }
+    }
+
+    private ItemStack generateDeathCompass(Player player, Location location) {
+        String rawDisplayName = RESPAWN_COMPASS_DISPLAY_NAME;
+        List<String> rawLore = RESPAWN_COMPASS_LORE;
+        World world = location.getWorld();
+        String worldName = LocationUtils.getWorldName(world);
+        ItemStack compass = ItemStack.of(Material.COMPASS, 1);
+        CompassMeta meta = (CompassMeta) compass.getItemMeta();
+        meta.setLodestone(location.clone());
+        meta.setLodestoneTracked(false);
+        meta.displayName(MiniMessage.miniMessage().deserialize(rawDisplayName).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
+        meta.lore(rawLore.stream().map(s -> MiniMessage.miniMessage().deserialize(s,
+                        Placeholder.unparsed("player", player.getName()),
+                        Placeholder.component("face", Component.object(ObjectContents.playerHead(player.getName()))),
+                        Placeholder.unparsed("world", worldName),
+                        Placeholder.unparsed("x", String.format("%.0f", location.x())),
+                        Placeholder.unparsed("y", String.format("%.0f", location.y())),
+                        Placeholder.unparsed("z", String.format("%.0f", location.z()))
+                ).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList()
+        );
+        meta.addEnchant(Enchantment.UNBREAKING, 1, false);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        compass.setItemMeta(meta);
+        compass.editPersistentDataContainer(pdc -> pdc.set(KeyUtils.RESPAWN_COMPASS, PersistentDataType.BOOLEAN, true));
+        return compass;
     }
 
 }

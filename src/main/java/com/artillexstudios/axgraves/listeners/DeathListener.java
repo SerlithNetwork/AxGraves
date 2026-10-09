@@ -7,6 +7,7 @@ import com.artillexstudios.axgraves.api.events.GraveSpawnEvent;
 import com.artillexstudios.axgraves.grave.Grave;
 import com.artillexstudios.axgraves.grave.SpawnedGraves;
 import com.artillexstudios.axgraves.utils.ExperienceUtils;
+import com.artillexstudios.axgraves.utils.KeyUtils;
 import com.artillexstudios.axgraves.utils.LocationUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -136,6 +137,10 @@ public class DeathListener implements Listener {
                     Random random = ThreadLocalRandom.current();
                     for (int i = 0; iterator.hasNext(); i++) {
                         ItemStack item = iterator.next();
+
+                        if (item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+                            continue;
+                        }
 
                         if (i < limit) {
                             event.getItemsToKeep().add(item);
