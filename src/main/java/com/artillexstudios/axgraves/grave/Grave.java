@@ -266,13 +266,11 @@ public class Grave {
         };
         if (this.player.isOnline() && this.player instanceof Player owner) {
             owner.getScheduler().execute(AxGraves.getInstance(), () -> {
-                Iterator<ItemStack> items = owner.getInventory().iterator();
-                while (items.hasNext()) {
-                    ItemStack item = items.next();
-                    if (!item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+                for (ItemStack item : owner.getInventory()) {
+                    if (item == null || !item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
                         continue;
                     }
-                    items.remove();
+                    item.setAmount(0);
                 }
             }, null, 0);
         }

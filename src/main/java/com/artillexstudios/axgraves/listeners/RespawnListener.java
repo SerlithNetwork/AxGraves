@@ -32,6 +32,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -133,13 +134,11 @@ public class RespawnListener implements Listener {
     @EventHandler
     public void onQuit(final PlayerQuitEvent event) {
         LocationUtils.DEATH_LOCATIONS.remove(event.getPlayer().getUniqueId());
-        Iterator<ItemStack> items = event.getPlayer().getInventory().iterator();
-        while (items.hasNext()) {
-            ItemStack item = items.next();
-            if (!item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
+        for (ItemStack item : event.getPlayer().getInventory()) {
+            if (item == null || !item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)) {
                 continue;
             }
-            items.remove();
+            item.setAmount(0);
         }
     }
 
