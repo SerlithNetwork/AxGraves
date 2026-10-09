@@ -126,9 +126,9 @@ public class DeathListener implements Listener {
 
             if (!event.getKeepInventory()) {
                 store = true;
+                List<ItemStack> items = event.getDrops();
                 if (softKeepInventory) {
-                    int limit = (int) (event.getDrops().size() * softInventoryPercentage);
-                    List<ItemStack> items = event.getDrops();
+                    int limit = (int) (items.size() * softInventoryPercentage);
                     Collections.shuffle(items);
                     Iterator<ItemStack> iterator = items.iterator();
 
@@ -165,7 +165,9 @@ public class DeathListener implements Listener {
                         drops.add(item);
                     }
                 } else {
-                    drops.addAll(event.getDrops());
+                    drops.addAll(
+                            items.stream().filter(item -> !item.getPersistentDataContainer().has(KeyUtils.RESPAWN_COMPASS)).toList()
+                    );
                 }
             } else if (overrideKeepInventory) {
                 store = true;
